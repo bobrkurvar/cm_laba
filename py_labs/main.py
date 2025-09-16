@@ -1,5 +1,4 @@
 import random
-from typing import List
 
 def gen_card_base(height: int, width: int, suit: str, cost: str) -> str:
     card_base = ''
@@ -20,13 +19,13 @@ def gen_card_base(height: int, width: int, suit: str, cost: str) -> str:
         card_base += '\\' + '=' * width + '/'
     return card_base
 
-def split_to_rows_lst(string: str) -> List[List[str]]:
+def split_to_rows_lst(string: str) -> list[list[str]]:
     layers: list = string.split('\n')
     for i in range(len(layers)):
         layers[i] = list(layers[i])
     return layers
 
-def join_lst_to_str(lst: List[List[str]]):
+def join_lst_to_str(lst: list[list[str]]):
     for i in range(len(lst)):
         lst[i] = ''.join(lst[i])
     card = '\n'.join(lst)
