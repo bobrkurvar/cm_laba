@@ -9,11 +9,14 @@ def print_like_matrix(a: list, b: list, c: list, p: list, q: list, n: int, ext_a
         flag = True
     for i in range(n):
         for j in range(n):
+            if p[i] == 0: p[i] = abs(p[i])
             if j == 0: rows += f'{p[i]:>{max_len}.4g}\t'
             elif j == 1: rows += f'{q[i]:>{max_len}.4g}\t'
             elif i == j: rows += f'{b[i]:>{max_len}.4g}\t'
             elif j == i + 1: rows += f'{c[i]:>{max_len}.4g}\t'
-            elif j == i - 1: rows += f'{a[i-1]:>{max_len}.4g}\t'
+            elif j == i - 1:
+                if a[i-1] == 0: a[i-1] = abs(a[i-1])
+                rows += f'{a[i-1]:>{max_len}.4g}\t'
             elif flag and ext_arr['row'] <= i and ext_arr['col'] == j:
                 print('EXTRA')
                 try:
@@ -49,34 +52,59 @@ def go_to_k_on_arrays(a: list, b: list, c: list, p: list, q: list, n: int):
         if cur is None:
             cur = p
         coefs = []
+        temp = b[i]
+        b[i] = 1
+        if i > 0:
+            a[i - 1] /= temp
+        else:
+            p[i] = 1
+        if i == 1:
+            q[i] = 1
+        if i < n-1:
+            c[i] /= temp
+        print('На диагонали единицы:', end=' ')
+        if not (cur is None) and not (cur is q) and not (cur is p):
+            print('С extra arr')
+            print_like_matrix(a, b, c, p, q, n, dict(arr=cur[1:], row=i+2, col=i))
+        else:
+            print('Без extra arr')
+            print_like_matrix(a, b, c, p, q, n)
         for j in range(n):
             if j <= i and (cur is p or cur is q) : continue
             try:
-                coef = cur[j] / b[i]
+                coef = cur[j]
                 coefs.append(coef)
                 print(f"coef: {cur[j]} / {b[i]} : {coef}")
-                cur[j] -= cur[j]
+                print(f'Обнуляется {cur[j]}')
+                cur[j] = 0
+                if i >= 1:
+                    a[i] = 0
             except IndexError:
                 break
         if i >= 1:
-            for pos, z in enumerate((b, a)):
-                print(f'{z[i+1]} - {c[i]} * {coefs[pos]} ({c[i] * coefs[pos]})', sep=' ')
-                z[i + 1] -= c[i] * coefs[pos]
-                print(f'= {z[i + 1]}')
-            cur = [a[i + 1]]
-            for z in range(1, len(range(i+1, n))):
+            try:
+                for pos, z in enumerate((b, a)):
+                    print(f'{z[i + 1]} - {c[i]} * {coefs[pos]} ({c[i] * coefs[pos]})', sep=' ')
+                    z[i + 1] -= c[i] * coefs[pos]
+                    print(f'= {z[i + 1]}')
+                cur = [a[i + 1]]
+            except IndexError: pass
+            for z in range(2, len(range(i+1, n))):
                 try:
-                    cur_num = -1 * (coefs[z])
+                    #if i == 1: z += 1
+                    print(f'cur_name: {-1 * coefs[z]} * {c[i]} : {-1 * coefs[z] * c[i]}')
+                    cur_num = -1 * (coefs[z]) * c[i]
                     cur.append(cur_num)
                 except IndexError:
                     break
         else:
             cur = q
         print(cur)
+        print('После вычета: ')
         if cur is p or cur is q:
             print_like_matrix(a, b, c, p, q, n)
         else:
-            print(f"PRINT WITH EXTRA ARRAY WITH ROW {i + 3} AND COLS {i + 1}")
+            print(f"PRINT WITH EXTRA ARRAY WITH ROW {i + 4} AND COLS {i + 1}")
             print_like_matrix(a, b, c, p, q, n, dict(arr=cur[1:], row=i+3, col=i + 1))
 
 
