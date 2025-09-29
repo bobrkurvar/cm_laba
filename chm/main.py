@@ -52,26 +52,30 @@ def divide_by_diagonal_elem(i, n, a, b, c, p, q, f):
     print(f'i = {i}, q: ', q, sep=' ')
     #print(f'i = {i}, b: ', b, sep=' ')
     #print(f'i = {i}, c: ', c, sep=' ')
-    print(f'i = {i}, p: ', p, sep=' ')
+    print(f'i = {i}, p: ', p)
     print(f'i = {i}, f: ', f)
     #print(f'i = {i}, f: ', f )
     temp = b[i]
-    print(f'ДЕЛИМ A {a[i - 1]} на {temp}')
+    print(f'ДЕЛИМ на {temp}: a = {a[i - 1]}; p = {p[i]}; f = {f[i]}', end='; ')
     a[i - 1] /= temp
     b[i] = 1
     f[i] /= temp
+    p[i] /= temp
+    try:
+        c[i] /= temp
+    except IndexError: pass
     if i == 1:
         q[i] = 1
         p[i - 1] = 1
-        p[i] /= temp
+        #p[i] /= temp
         f[i - 1] /= b[i - 1]
         b[i - 1] = 1
+        print()
     else:
-        p[i] /= temp
+        #p[i] /= temp
+        print(f'ДЕЛИМ на {temp}: q = {q[i]}')
         q[i] /= temp
 
-    if i < n - 1:
-        c[i] /= temp
 
 
 def sub_to_diagonal_elem_up(i, a, b, c, p, q, f):
@@ -150,8 +154,8 @@ def go_up(a, b, c, p, q, f, n):
     print('\n' + '-' * 50 + 'GO DOWN' + '-' * 50, end='\n\n')
     to_null_on_p(n, p, f, a)
     print_like_matrix(a, b, c, p, q, n, f)
-    #to_null_on_q(n, a, q, f)
-    #print_like_matrix(a, b, c, p, q, n, f)
+    to_null_on_q(n, a, q, f)
+    print_like_matrix(a, b, c, p, q, n, f)
     #to_null_on_another(n, a, f)
     #print_like_matrix(a, b, c, p, q, n, f)
 
