@@ -47,18 +47,12 @@ def extract_from_file(file: str, a: list, b: list, c: list, p: list, q: list, an
             except IndexError:
                 continue
 
-def divide_by_diagonal_elem(i, n, a, b, c, p, q, f):
-    # print(f'i = {i}, a: ', a, sep=' ')
-    # print(f'i = {i}, b: ', b)
-    # print(f'i = {i}, c: ', c)
-    # print(f'i = {i}, q: ', q, sep=' ')
-    # print(f'i = {i}, p: ', p)
-    # print(f'i = {i}, f: ', f)
+def divide_by_diagonal_elem(i, a, b, c, p, q, f, f_):
     temp = b[i]
-    #print(f'ДЕЛИМ на {temp}: a = {a[i - 1]}; p = {p[i]}; f = {f[i]}', end='; ')
     a[i - 1] /= temp
     b[i] = 1
     f[i] /= temp
+    f_[i] /= temp
     p[i] /= temp
     try:
         c[i] /= temp
@@ -66,33 +60,27 @@ def divide_by_diagonal_elem(i, n, a, b, c, p, q, f):
     if i == 1:
         q[i] = 1
         p[i - 1] = 1
-        #p[i] /= temp
         f[i - 1] /= b[i - 1]
+        f_[i - 1] /= b[i - 1]
         b[i - 1] = 1
         print()
     else:
-        #print(f'ДЕЛИМ на {temp}: q = {q[i]}')
         q[i] /= temp
 
 
 
-def sub_to_diagonal_elem_up(i, a, b, c, p, q, f):
-    # print(f'i = {i}, a: ', a)
-    # print(f'i = {i}, b: ', b)
-    # print(f'i = {i}, c: ', c)
-    # print(f'i = {i}, q: ', q)
-    # print(f'i = {i}, p: ', p)
-    # print(f'i = {i}, f: ', f)
+def sub_to_diagonal_elem_up(i, a, b, c, p, q, f, f_):
     if c[i - 1] != 0:
         coef = c[i - 1] / b[i]
-        #print(f'Coef: {c[i - 1]} / {b[i]} : {coef}', end='\t')
-        #print(f'Обнуляется {c[i - 1]}', end='; ')
+        print(f'Coef: {c[i - 1]} / {b[i]} : {coef}', end='\t')
+        print(f'Обнуляется {c[i - 1]}', end='; ')
         f[i - 1] -= f[i] * coef
-        #print(f'b: {b[i-1]} - {a[i - 1] * coef} = {b[i - 1] - a[i - 1] * coef}', end='; ')
+        f_[i - 1] -= f_[i] * coef
+        print(f'b: {b[i-1]} - {a[i - 1] * coef} = {b[i - 1] - a[i - 1] * coef}', end='; ')
         b[i - 1] -= a[i - 1] * coef
-        #print(f'p: {p[i - 1]} - {p[i] * coef} = {p[i - 1] - p[i] * coef}', end='; ')
+        print(f'p: {p[i - 1]} - {p[i] * coef} = {p[i - 1] - p[i] * coef}', end='; ')
         p[i - 1] -= p[i] * coef
-        #print(f'q: {q[i - 1]} - {q[i] * coef} = {q[i - 1] - q[i] * coef}')
+        print(f'q: {q[i - 1]} - {q[i] * coef} = {q[i - 1] - q[i] * coef}')
         q[i - 1] -= q[i] * coef
         c[i - 1] = 0
         if i == 2:
@@ -101,7 +89,7 @@ def sub_to_diagonal_elem_up(i, a, b, c, p, q, f):
             a[1] -= q[i] * coef
 
 
-def to_null_on_p(n, p, f, a):
+def to_null_on_p(n, p, f, a, f_):
     for i in range(1, n):
         print_like_matrix(a, b, c, p, q, n, f)
         coef = p[i]
@@ -113,8 +101,9 @@ def to_null_on_p(n, p, f, a):
             a[i - 1] = 0
         print(f'f: {f[i]} - {f[0]} * {coef}) = {f[i] - f[0] * coef}')
         f[i] -= f[0] * coef
+        f_[i] -= f_[0] * coef
 
-def to_null_on_q(n, a, q, f):
+def to_null_on_q(n, a, q, f, f_):
     for i in range(2, n):
         print_like_matrix(a, b, c, p, q, n, f)
         if i == 2: a[i - 1] = 0
@@ -124,8 +113,9 @@ def to_null_on_q(n, a, q, f):
         print(f'Coef: {coef}')
         print(f'f: {f[i]} - {f[1]} * {coef}) = {f[i] - f[1] * coef}')
         f[i] -= f[1] * coef
+        f_[i] -= f_[1] * coef
 
-def to_null_on_another(n, a, f):
+def to_null_on_another(n, a, f, f_):
     for i in range(2, n - 1):
         if a[i] != 0:
             coef = a[i]
@@ -134,34 +124,57 @@ def to_null_on_another(n, a, f):
             print(f'Coef: {coef}', end='\t')
             print(f'f: {f[i+1]} - {f[i]} * {coef}) = {f[i + 1] - f[i] * coef}')
             f[i + 1] -= f[i] * coef
+            f_[i + 1] -= f_[i] * coef
 
-def go_up(a, b, c, p, q, f, n):
+def fill_f_(a, b, c, p, q, n):
+    for i in range(n-1, -1, -1):
+        print(f'to_f_{i+1} = {b[i]} + {a[i-1]} = {b[i] + a[i-1]}')
+        to_f_ = b[i]
+        if i > 0:
+            to_f_ += a[i-1]
+        if i >= 3:
+            to_f_ += p[i] + q[i]
+        elif i >= 2:
+            to_f_ += p[i]
+        if i != n - 1:
+            to_f_ += c[i]
+        f_.append(to_f_)
+
+def go_up(a, b, c, p, q, f, n, f_):
     print('-' * 50 + 'GO UP' + '-' * 50)
     for i in range(n-1, 0, -1):
-        divide_by_diagonal_elem(i, n, a, b, c, p, q, f)
         print_like_matrix(a, b, c, p, q, n, f)
-        sub_to_diagonal_elem_up(i, a, b, c, p, q, f)
-        print_like_matrix(a, b, c, p, q, n, f)
+        print_like_matrix(a, b, c, p, q, n, f_)
+        divide_by_diagonal_elem(i, a, b, c, p, q, f, f_)
+        sub_to_diagonal_elem_up(i, a, b, c, p, q, f, f_)
+    print_like_matrix(a, b, c, p, q, n, f)
     print('\n' + '-' * 50 + 'GO DOWN' + '-' * 50, end='\n\n')
-    to_null_on_p(n, p, f, a)
+    to_null_on_p(n, p, f, a, f_)
     print_like_matrix(a, b, c, p, q, n, f)
-    to_null_on_q(n, a, q, f)
+    to_null_on_q(n, a, q, f, f_)
     print_like_matrix(a, b, c, p, q, n, f)
-    to_null_on_another(n, a, f)
+    to_null_on_another(n, a, f, f_)
     print_like_matrix(a, b, c, p, q, n, f)
 
 if __name__ == '__main__':
-    a, b, c, p, q, f = list(), list(), list(), list(), list(), list()
-    a2, b2, c2, p2, q2, f2 = list(), list(), list(), list(), list(), list()
+    a, b, c, p, q, f, f_ = list(), list(), list(), list(), list(), list(), list()
     n = 10
     file = "data.txt"
     extract_from_file(file, a, b, c, p, q, f)
-    extract_from_file(file, a2, b2, c2, p2, q2, f2)
-    print()
+    fill_f_(a, b, c, p, q, n)
+    f_ = f_[::-1]
+    print(f'f~:{f_}', end='\n\n')
     print(p, q, sep='\n', end='\n\n')
     print(a, b, c, f, sep='\n', end='\n\n')
     print_like_matrix(a, b, c, p, q, n, f)
-    go_up(a, b, c, p, q, f, n)
+    go_up(a, b, c, p, q, f, n, f_)
+    print(f, f_, sep='\n')
     for i in range(1, n+1):
         print(f'x{i}: {f[i-1]:.4g}')
-    print_like_matrix(a2, b2, c2, p2, q2, n, f2)
+    print()
+    for i in range(1, n + 1):
+        print(f'x~{i}: {f_[i-1]:.4g}')
+    d, d_ = None, None
+    d = max((abs(-1 - i) for i in f))
+    d_ = max((abs(1 - i) for i in f_))
+    print(f'погрешность для x: {d}, для x~: {d_}')
