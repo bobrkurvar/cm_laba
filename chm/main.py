@@ -156,6 +156,11 @@ def go_up(a, b, c, p, q, f, n, f_):
     to_null_on_another(n, a, f, f_)
     print_like_matrix(a, b, c, p, q, n, f)
 
+# def gen_set_of_matrix():
+#     for i in range(1, 3):
+#         size_matrix = 10 ** i
+
+
 if __name__ == '__main__':
     a, b, c, p, q, f, f_ = list(), list(), list(), list(), list(), list(), list()
     n = 10
@@ -174,7 +179,6 @@ if __name__ == '__main__':
     print()
     for i in range(1, n + 1):
         print(f'x~{i}: {f_[i-1]:.4g}')
-    d, d_ = None, None
-    d = max((abs(-1 - i) for i in f))
     d_ = max((abs(1 - i) for i in f_))
-    print(f'погрешность для x: {d}, для x~: {d_}')
+    print(f'для x~: {d_}')
+    print('-' * 25 + 'TEST' + '-' * 25)
