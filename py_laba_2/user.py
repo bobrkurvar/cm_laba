@@ -18,10 +18,15 @@ class Game:
         self.turn = None
 
     def give_cards(self):
-        for user in self.users:
+        for i, user in enumerate(self.users):
             cnt = 3
             user.deck = self.deck[:cnt]
-            self.deck = self.deck[cnt:]
+            new_deck = self.deck[cnt:]
+            if len(user.deck) < cnt:
+                self.users = self.users[:i]
+            else:
+                self.deck = new_deck
+
 
     @staticmethod
     def match_cards(card1: SimpleCard, card2: SimpleCard):
@@ -40,6 +45,8 @@ class Game:
                         pass
                 elif say_uno.lower() == 'n' and self.users[self.turn] not in uno:
                     uno.append(self.users[self.turn])
+        else:
+            print("нельзя положить данную карту на стол")
 
     def table_info(self):
         print("table deck length:", len(self.deck))
@@ -73,11 +80,8 @@ class Game:
                     print(f"card on the table: {self.current_card}")
                     cards_for = [str(i) + " - ( " + str(card) + " )" for i, card in enumerate(self.users[self.turn].deck)]
                     card_index = input(f"выберите какую карту бросить: {", ".join(cards_for)}: ")
-                    if self.match_cards(self.current_card, self.users[self.turn].deck[int(card_index)]):
-                        self.toss_card(card_index = int(card_index), uno=uno)
-                        input_flag = False
-                    else:
-                        print("Нельзя положить данную карту на текущую на столе")
+                    self.toss_card(card_index = int(card_index), uno=uno)
+                    input_flag = False
                 elif info == "2":
                     self.give_new_cards()
                     self.toss_card(card_index=len(self.users[self.turn].deck) - 1, uno=uno)
@@ -86,7 +90,6 @@ class Game:
                     for user in self.users:
                         if len(user.deck) == 1:
                             if self.users[self.turn] is user:
-                                print(f"UNO BY USER {self.turn}")
                                 try:
                                     uno.remove(user)
                                 except ValueError:
