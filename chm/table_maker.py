@@ -24,7 +24,7 @@ df = pd.DataFrame({
 
 
 latex_table = df.to_latex(index=False, float_format="%.4e")
-with open(r"C:\Users\Andy\Desktop\test_results.tex", "w") as f:
+with open(r"C:\Users\user\Desktop\test_results.tex", "w") as f:
     f.write(latex_table)
 
 print("LaTeX таблица успешно созданы!")

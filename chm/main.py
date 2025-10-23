@@ -1,4 +1,5 @@
-from matrix_generator import generate_system_arrays, generate_system_arrays_without_zero
+from matrix_generator import generate_system_arrays
+import pandas as pd
 
 def print_like_matrix(a: list, b: list, c: list, p: list, q: list, n: int, f: list | None = None):
     str_a, str_b, str_c, str_p, str_q = ([f'{x:.4g}' for x in a], [f'{x:.4g}' for x in b], [f'{x:.4g}' for x in c], [f'{x:.4g}' for x in p], [f'{x:.4g}' for x in q])
@@ -190,7 +191,6 @@ if __name__ == '__main__':
 
     test_counter = 1
 
-    # Таблица результатов
     results = []
 
     for n in sizes:
@@ -201,37 +201,40 @@ if __name__ == '__main__':
             print(f"\n=== Размер {n}, диапазон {coef_range} ===\n")
             for set_idx in range(sets_per_range):
                 print('-' * 20 + f'TEST {set_idx + 1}' + '-' * 20)
-                a, b, c, p, q, f, x = generate_system_arrays_without_zero(n, coef_range)
+                a, b, c, p, q, f, x = generate_system_arrays(n, coef_range)
+                f_ = list()
+                fill_f_(a, b, c, p, q, n, f_)
+                f_ = f_[::-1]
+                if n == 10:
+                    print_like_matrix(a, b, c, p, q, n, f)
                 print("f:", " ".join(f"{val:.4g}" for val in f))
                 print("___x:", " ".join(f"{i:.4g}" for i in x))
 
-                # Решение системы
-                go_up(a, b, c, p, q, f, n)
+                go_up(a, b, c, p, q, f, n, f_)
                 print("my_x:", " ".join(f"{i:.4g}" for i in f))
 
-                # Вычисление относительных погрешностей
                 delta_list = []
+                err_lst = []
                 for xi, xi_hat in zip(x, f):
                     if abs(xi) > _q:
                         delta_list.append(abs(xi - xi_hat) / abs(xi))
+                        err_lst.append(max((abs(1 - i) for i in f_)))
                     else:
                         delta_list.append(abs(xi - xi_hat))
+                        err_lst.append(max((abs(1 - i) for i in f_)))
 
-                delta_max = max(delta_list)
+                err_mean = sum(err_lst) / len(err_lst)
                 delta_mean = sum(delta_list) / len(delta_list)
 
                 print("Средняя относительная погрешность набора: ", delta_mean)
-                print("Оценка точности набора: ", delta_max)
+                print("Оценка точности набора: ", err_mean)
 
-                # Сохраняем для усреднения по диапазону
                 rel_errors_all_sets.append(delta_mean)
-                max_errors_all_sets.append(delta_max)
+                max_errors_all_sets.append(err_mean)
 
-            # Средние значения по 5 наборам
             avg_rel_error = sum(rel_errors_all_sets) / sets_per_range
             avg_max_error = sum(max_errors_all_sets) / sets_per_range
 
-            # Сохраняем в таблицу
             results.append({
                 "№ теста": test_counter,
                 "Размерность системы": n,
@@ -240,8 +243,11 @@ if __name__ == '__main__':
                 "Среднее значение оценки точности": avg_max_error
             })
             test_counter += 1
+    df = pd.DataFrame(results)
+    latex_table = df.to_latex(index=False, float_format="%.4e")
+    with open(r"C:\Users\user\Desktop\test_results.tex", "w", encoding="utf-8") as f:
+        f.write(latex_table)
 
-    # Печать итоговой таблицы
     print("\n=== Итоговая таблица ===\n")
     print(f"{'№':<5} {'Размер':<10} {'Диапазон':<20} {'Средн. δ':<25} {'Средн. оценка точности':<25}")
     for r in results:
