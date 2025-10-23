@@ -5,6 +5,7 @@ class User:
 
     def __init__(self):
         self.deck = None
+        self.points = 0
 
 
 class Game:
@@ -15,6 +16,7 @@ class Game:
         self.deck = deck
         self.users = users
         self.current_card = None
+        self.table = []
         self.turn = None
 
     def give_cards(self):
@@ -35,7 +37,7 @@ class Game:
     def toss_card(self, uno: list, card_index: int = 0, match: bool = True):
         if not match or self.match_cards(self.current_card, self.users[self.turn].deck[int(card_index)]):
             self.current_card = self.users[self.turn].deck.pop(card_index)
-            self.deck.append(self.current_card)
+            self.table.append(self.current_card)
             if len(self.users[self.turn].deck) == 1:
                 say_uno = input("UNO: (y/n): ")
                 if say_uno.lower() == 'y':
@@ -49,7 +51,8 @@ class Game:
             print("нельзя положить данную карту на стол")
 
     def table_info(self):
-        print("table deck length:", len(self.deck))
+        print("deck length:", len(self.deck))
+        print("table length:", len(self.table))
         print(f"turn User {self.turn}")
         for i, user in enumerate(self.users):
             print(f"User {i} deck length: {len(user.deck)}")
@@ -57,11 +60,19 @@ class Game:
     def give_new_cards(self, user: User | None = None, num: int = 1):
         for i in range(num):
             new_card = self.deck.pop(0)
+            if len(self.deck) == 0:
+                self.deck = self.table
+                shuffle(self.deck)
+                self.table = []
             print("взяли карту: ", new_card)
             if user:
                 user.deck.append(new_card)
             else:
                 self.users[self.turn].deck.append(new_card)
+
+    def collect_card(self):
+        for user in self.users:
+            self.deck.append(user.deck.popitem)
 
     def start(self):
         shuffle(self.users)
@@ -103,8 +114,14 @@ class Game:
                 else:
                     pass
             if not self.users[self.turn].deck:
-                print(f"User {self.turn} победил")
-                game_flag = False
+                points = sum(i.value for user in self.users for i in user.deck)
+                print(f"Раунд закончен User {self.turn} забирает очки: {points}")
+                self.users[self.turn].points += points
+                self.collect_card()
+                self.give_cards()
+                if self.users[self.turn].points >= 500:
+                    print(f"Пользователь User {self.turn} победил")
+                    game_flag = False
             self.turn = self.turn + 1 if self.turn < len(self.users) - 1 else 0
             print()
 
