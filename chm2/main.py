@@ -32,7 +32,7 @@ def matrix_generate(n: int, l: int):
     return result, x, b
 
 
-def print_like_matrix(band: list[list[int]], n: int, f: list[int] | None = None):
+def print_like_full_matrix(band: list[list[int]], n: int, f: list[int] | None = None):
     flat = [f"{x:.4g}" for row in band for x in row]
     width = max(len(x) for x in flat)
 
@@ -41,7 +41,8 @@ def print_like_matrix(band: list[list[int]], n: int, f: list[int] | None = None)
         print('\t'.join(row), end='')
         if f:
             print(f" | {f[i]}")
-        else: print()
+        else:
+            print()
 
 def set_in_band(i, j, band, value):
     if i < j:
@@ -51,16 +52,14 @@ def set_in_band(i, j, band, value):
         band[i][-d - 1] = value
 
 
-def cholesky_band(A):
+def c_band(A):
     n = len(A)
     L = [[0.0] * len(A[i]) for i in range(n)]
 
     for i in range(n):
-        # граница для ленты
         j_start = max(0, i - (len(A[i]) - 1))
 
         for j in range(j_start, i + 1):
-            # вычисляем сумму s = Σ_k L[i,k] * L[j,k]
             s = 0.0
             k_start = max(0, j - (len(L[j]) - 1))
             for k in range(k_start, j):
@@ -69,19 +68,14 @@ def cholesky_band(A):
             val = get(i, j, A) - s
 
             if i == j:
-                # диагональный элемент
-                if val <= 0:
-                    raise ValueError(f"Матрица не положительно определена: diag[{i}]={val}")
                 set_in_band(i, j, L, math.sqrt(val))
             else:
-                # поддиагональный элемент
                 set_in_band(i, j, L, val / get(j, j, L))
     return L
 
-def solve_from_L_band(L: list[list[float]], f: list[float]) -> list[float]:
+def solve(L: list[list[float]], f: list[float]) -> list[float]:
     n = len(L)
 
-    # Прямой ход: решаем L * y = f
     y = [0.0] * n
     for i in range(n):
         s = 0.0
@@ -93,7 +87,6 @@ def solve_from_L_band(L: list[list[float]], f: list[float]) -> list[float]:
             s += row[index_in_row] * y[j]
         y[i] = (f[i] - s) / row[-1]
 
-    # Обратный ход: решаем L^T * x = y
     x = [0.0] * n
     for i in reversed(range(n)):
         s = 0.0
@@ -118,10 +111,9 @@ def main():
     print(A)
     print(x)
     print(f, end='\n\n')
-    L = cholesky_band(A)
-    print_like_matrix(L, n)
-    print_like_matrix(A, n, f)
-    result = solve_from_L_band(L, f)
+    print_like_full_matrix(A, n, f)
+    L = c_band(A)
+    result = solve(L, f)
     print(result)
 
 if __name__ == "__main__":
