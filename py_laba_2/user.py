@@ -12,7 +12,6 @@ class Game:
 
     def __init__(self, users: list[User]):
         deck = [SimpleCard(color, value) for color in ("blue", "red") for value in range(5)]
-        shuffle(deck)
         self.deck = deck
         self.users = users
         self.current_card = None
@@ -20,6 +19,7 @@ class Game:
         self.turn = None
 
     def give_cards(self):
+        shuffle(self.deck)
         for i, user in enumerate(self.users):
             cnt = 3
             user.deck = self.deck[:cnt]
@@ -47,8 +47,10 @@ class Game:
                         pass
                 elif say_uno.lower() == 'n' and self.users[self.turn] not in uno:
                     uno.append(self.users[self.turn])
+            return False
         else:
             print("нельзя положить данную карту на стол")
+            return True
 
     def table_info(self):
         print("deck length:", len(self.deck))
@@ -56,6 +58,7 @@ class Game:
         print(f"turn User {self.turn}")
         for i, user in enumerate(self.users):
             print(f"User {i} deck length: {len(user.deck)}")
+        print(f"card on the table: {self.current_card}")
 
     def give_new_cards(self, user: User | None = None, num: int = 1):
         for i in range(num):
@@ -72,7 +75,9 @@ class Game:
 
     def collect_card(self):
         for user in self.users:
-            self.deck.append(user.deck.popitem)
+            if user.deck:
+                self.deck.append(user.deck.pop())
+        self.deck += self.table
 
     def start(self):
         shuffle(self.users)
@@ -91,8 +96,7 @@ class Game:
                     print(f"card on the table: {self.current_card}")
                     cards_for = [str(i) + " - ( " + str(card) + " )" for i, card in enumerate(self.users[self.turn].deck)]
                     card_index = input(f"выберите какую карту бросить: {", ".join(cards_for)}: ")
-                    self.toss_card(card_index = int(card_index), uno=uno)
-                    input_flag = False
+                    input_flag = self.toss_card(card_index = int(card_index), uno=uno)
                 elif info == "2":
                     self.give_new_cards()
                     self.toss_card(card_index=len(self.users[self.turn].deck) - 1, uno=uno)
@@ -105,7 +109,6 @@ class Game:
                                     uno.remove(user)
                                 except ValueError:
                                     pass
-                                input_flag = False
                             elif user in uno:
                                 print(f"2 новые карты пользователю")
                                 self.give_new_cards(user, 2)
@@ -117,13 +120,22 @@ class Game:
                 points = sum(i.value for user in self.users for i in user.deck)
                 print(f"Раунд закончен User {self.turn} забирает очки: {points}")
                 self.users[self.turn].points += points
-                self.collect_card()
-                self.give_cards()
+                print("Points")
+                for user in self.users:
+                    print(user.points)
                 if self.users[self.turn].points >= 500:
                     print(f"Пользователь User {self.turn} победил")
                     game_flag = False
-            self.turn = self.turn + 1 if self.turn < len(self.users) - 1 else 0
-            print()
+                else:
+                    game_continue = input("Продолжить игру (y/n): ")
+                    if game_continue == "y":
+                        self.collect_card()
+                        self.give_cards()
+                    elif game_continue == "n":
+                        game_flag = False
+            else:
+                self.turn = self.turn + 1 if self.turn < len(self.users) - 1 else 0
+                print()
 
 
 
