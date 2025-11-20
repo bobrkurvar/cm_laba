@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from dataclasses import dataclass
 
-# Data structure
+
 @dataclass
 class Card:
     value: str
@@ -10,19 +10,13 @@ class Card:
 
 
 VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Валет', 'Дама', 'Король', 'Туз']
-VALUES_PRESENT = {
-    'дама': 'Q',
-    'король': 'K',
-    'валет': 'J',
-    'туз': 'A'
-}
 
-SUITS = [
-    ('Черви', '♥'),
-    ('Бубны', '♦'),
-    ('Трефы', '♣'),
-    ('Пики', '♠'),
-]
+SUITS = {
+    'Черви': '♥',
+    'Бубны': '♦',
+    'Трефы': '♣',
+    'Пики': '♠'
+}
 
 SUIT_COLOR = {
     'Черви': '#FF0000',
@@ -53,7 +47,7 @@ class CardGeneratorApp:
         lbl_suit = ttk.Label(frm, text='Выберите масть карты:')
         lbl_suit.pack(anchor='w', pady=(12, 2))
 
-        suit_names = [name for name, sym in SUITS]
+        suit_names = [name for name in SUITS]
         self.suit_cb = ttk.Combobox(frm, values=suit_names, state='readonly')
         self.suit_cb.pack(fill='x')
         self.suit_cb.set(suit_names[0])
@@ -75,14 +69,14 @@ class CardGeneratorApp:
         win.geometry(f'{width}x{height}+{x}+{y}')
 
     def show_card_modal(self):
-        val = self.value_cb.get().strip()
-        suit_name = VALUES_PRESENT.get(self.suit_cb.get().strip().lower(), self.suit_cb.get().strip().lower())
+        val = self.value_cb.get().strip() if (self.value_cb.get().strip().isdigit()) else self.value_cb.get().strip()[0]
+        suit_name = self.suit_cb.get().strip()
 
         if not val or not suit_name:
             messagebox.showwarning('Ошибка', 'Пожалуйста, выберите значение и масть карты.')
             return
 
-        suit_sym = next((sym for name, sym in SUITS if name == suit_name), '?')
+        suit_sym = SUITS.get(suit_name, '?')
         card = Card(value=val, suit=suit_name)
 
         modal = tk.Toplevel(self.root)
@@ -120,8 +114,8 @@ class CardGeneratorApp:
         top_left_y = y0 + pad
         canvas.create_text(top_left_x, top_left_y, anchor='nw', text=f'{card.value} {suit_sym}', font=small_font, fill=color)
 
-        bottom_right_x = x1 - pad - 40
-        bottom_right_y = y1 - pad - 20
+        bottom_right_x = x1 - pad - 55
+        bottom_right_y = y1 - pad - 30
 
         canvas.create_text(bottom_right_x, bottom_right_y, anchor='se', text=f'{card.value} {suit_sym}', font=small_font, fill=color, angle=180)
 
