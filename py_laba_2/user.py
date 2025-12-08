@@ -34,6 +34,13 @@ class Game:
     def match_cards(card1: SimpleCard, card2: SimpleCard):
         return card1.value == card2.value or card1.color == card2.color
 
+
+    # def play_card(self, card: SimpleCard):
+    #     action = card.special_action()
+    #     if action == 'plus':
+
+
+
     def toss_card(self, uno: list, card_index: int = 0, match: bool = True):
         if not match or self.match_cards(self.current_card, self.users[self.turn].deck[int(card_index)]):
             self.current_card = self.users[self.turn].deck.pop(card_index)

@@ -1,5 +1,6 @@
 import math
 import random
+import copy
 
 
 def matvec(band, vec):
@@ -93,15 +94,15 @@ def cholesky_band(A: list[list[float]]):
 def solve_cholesky_band(B, f):
     n = len(B)
     y = [0.0] * n
-
     for i in range(n):
-        s = sum(B[i][j]*y[j] for j in range(i))
+        s = sum(B[i][j] * y[j] for j in range(i))  # Без изменений, прямой ход
         y[i] = (f[i] - s) / B[i][i]
 
-    x = [0.0]*n
+    x = [0.0] * n
     for i in range(n-1, -1, -1):
-        s = sum(B[j][i]*x[j] for j in range(i+1, n))
-        x[i] = (y[i] - s) / B[i][i]
+        s = sum((B[j][i] / B[i][i]) * x[j] for j in range(i+1, n))  # Добавьте / B[i][i] в каждый член суммы
+        x[i] = y[i] - s
+
     return x
 
 def norm(vec):
@@ -223,7 +224,8 @@ def gen_random_eigenvalues(n: int, start: int = 0, end: int = 10):
     return [random.uniform(start, end) for _ in range(n)]
 
 def main():
-    n, M = 3, 100000
+    #random.seed(42)
+    n, M = 3, 1000
     eps_a = eps_g = 1e-6
     print("Исследование зависимости от mult:")
     results = []
@@ -235,7 +237,8 @@ def main():
     print()
 
     try:
-        A_fact = cholesky_band(A)
+        A_copy = copy.deepcopy(A)
+        A_fact = cholesky_band(A_copy)
         print("Разложение Холецкого выполнено успешно")
     except ZeroDivisionError as e:
         print(f"Ошибка разложения Холецкого: {e}")
@@ -281,9 +284,6 @@ def main():
     print(f"r2 = {r2:.2e}")
     print(f"IER = 0")
 
-
-    print("| mult | k1   | k2   | μ      |")
-    print("|------|------|------|--------|")
 
 if __name__ == "__main__":
     main()
