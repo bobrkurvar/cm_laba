@@ -1,83 +1,69 @@
+import math
 
+def newton_interpolation(x0, h, N, Y, XX, m):
+    # иначе не хватит узлов
+    if N < m + 1:
+        return 0.0, 1
+    x_last = x0 + (N - 1) * h
+    # Проверяем, что точка лежит внутри отрезка интерполирования
+    if XX < x0 or XX > x_last:
+        return 0.0, 2
+    # Если m = 1 (линейная интерполяция), мы берём два ближайших к XX узла и проводим
+    # через них прямую. По ней и находим значение в XX.
+    # Если m = 2 (квадратичная интерполяция), берём три ближайших узла и строим параболу.
 
-def print_matrix(matrix: list):
-    str_matrix = [[f"{x:.4f}" for x in row] for row in matrix]
-    max_len = max(len(s) for row in str_matrix for s in row)
-    for row in matrix:
-        for i in row:
-            if i == 0: i = abs(i)
-            print(f'{i:>{max_len}.4g}', end='\t')
-        print('\t')
-    print('\n')
+    # Выбор начального индекса p так, чтобы интервал [x_p, x_{p+m}] был ближе всего к XX
+    # Идеальный p, при котором середина интервала совпадает с XX
+    ideal_p = (XX - x0) / h - m / 2.0
+    p = int(round(ideal_p))
+    print(p)
+    #Ближайшими к XX будут те, которые окружают её слева и справа.
+    # Корректировка границ
+    # if p < 0:
+    #     p = 0
+    # if p > N - 1 - m:
+    #     p = N - 1 - m
+    # замена этого условия
+    p = max(0, min(p, N - 1 - m))
+    # Предвычисление факториалов до m
+    # fact = [1] * (m + 1)
+    # for i in range(1, m + 1):
+    #     fact[i] = fact[i-1] * i
 
-def extract_from_file(k: int, l: int, a: list, b: list, c: list, p: list, q: list):
-    with open('my_data.txt') as f:
-        i = 0
-        for row in f:
-            ch = row.split()
-            ch = [int(i) for i in ch]
-            print(ch)
-            try:
-                if i == k-1: p.extend(ch)
-                if i == l-1: q.extend(ch)
-                if i > 0: a.append(ch[i-1])
-                b.append(ch[i])
-                c.append(ch[i+1])
-                i += 1
-            except IndexError as err:
-                print(err)
-                pass
+    # Вычисление коэффициентов b_k
+    b = [0.0] * (m + 1)
+    for k in range(m + 1):
+        s = 0.0
+        for i in range(k + 1):
+            sign = (-1) ** (k - i)
+            #term = sign * Y[p + i] / (fact[i] * fact[k - i] * (h ** k))
+            term = sign * Y[p + i] / (math.factorial(i) * math.factorial(k - i) * (h ** k))
+            s += term
+        b[k] = s
 
+    # Вычисление значения многочлена в точке
+    result = 0.0
+    for k in range(m + 1):
+        prod = 1.0
+        # Вычисляем произведение (XX - t_0)(XX - t_1)...(XX - t_{k-1})
+        for j in range(k):
+            tj = x0 + (p + j) * h   # узел t_j
+            prod *= (XX - tj)
+        result += b[k] * prod
 
-def to_matrix(n: int, matrix: list, a: list, b: list, c: list, p: list, q: list):
-    for i in range(n):
-        row = []
-        if i == k-1:
-            row = p
-            matrix.append(row)
-            continue
-        if i == l-1:
-            row = q
-            matrix.append(row)
-            continue
-        row.extend([0]*(i-1))
-        if i > 0: row.append(a[i-1])
-        row.append(b[i])
-        if i < n - 1: row.append(c[i])
-        row.extend([0]*(n-(i+2)))
-        matrix.append(row)
+    return result, 0
 
-def go_to_k(k: int, rows: list):
-    #до k строки приводим к 1 на главной диагонали и 0 под ней и в строке k вплоть до k-1 0
-    for i in range(1, k):
-        to_divide = rows[i-1][i-1]
-        print(f'to_divide {to_divide:.3f}')
-        coef = rows[i][i - 1] / (rows[i - 1][i - 1] / to_divide)
-        coef_k = rows[k-1][i - 1] / (rows[i - 1][i - 1] / to_divide)
-        coef_l = rows[l - 1][i - 1] / (rows[i - 1][i - 1] / to_divide)
-        print(f'coef: {coef:.3f}\ncoef_k: {coef_k:.3f}\ncoef_l: {coef_l:.3f}')
-        for j in range(n):
-            rows[i-1][j] /= to_divide
-            to_sub_k = rows[i - 1][j] * coef_k
-            to_sub_l = rows[i - 1][j] * coef_l
-            #print(f'вычитаем k: {to_sub_k}\nвычитаем l: {to_sub_l}')
-            rows[k - 1][j] -= to_sub_k
-            rows[l-1][j] -= to_sub_l
-            if i != k-1:
-                to_sub = rows[i - 1][j] * coef
-                #print(f'вычитаем: {to_sub:.3f}')
-                rows[i][j] -= to_sub
-        print_matrix(rows)
+# Интерполяция функции sin(x) на [0, π] с шагом π/4
+x0 = 0.0
+h = math.pi / 4
+N = 5
+Y = [math.sin(x0 + i*h) for i in range(N)]
+XX = 1.0
+m = 3
 
-if __name__ == '__main__':
-    n, k, l = 10, 9, 10
-    a, b, c, p, q = list(), list(), list(), list(), list()
-    extract_from_file(k, l, a, b, c, p, q)
-    print()
-    print(p, q, sep='\n', end='\n\n')
-    print(a, b, c, sep='\n', end='\n\n')
-    matrix = []
-    to_matrix(n, matrix, a, b, c, p, q)
-    print_matrix(matrix)
-    go_to_k(k, matrix)
-    print_matrix(matrix)
+yy, ier = newton_interpolation(x0, h, N, Y, XX, m)
+if ier == 0:
+    print(f"Приближённое значение: {yy}")
+    print(f"Точное значение sin(1): {math.sin(1)}")
+else:
+    print(f"Ошибка: {ier}")
